@@ -9,6 +9,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,15 +41,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getWeather(View view) {
-        String city = String.valueOf(editText.getText());
-        try {
-            String result = String.valueOf(new DownloadTask().execute(city).get());
-            Log.d("result", result);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+            String city = String.valueOf(editText.getText());
+            new DownloadTask().execute(city);
     }
 
     public class DownloadTask extends AsyncTask<String, Void, String> {
@@ -54,12 +51,18 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... strings) {
             URL url;
             String result = "";
-            String target = "https://api.openweathermap.org/data/2.5/weather?q="+strings[0];
+            String target = "https://api.openweathermap.org/data/2.5/weather?q="+strings[0]+"&appid=cbed2decf2eacf11c80bffd8e214d021";
             HttpsURLConnection urlConnection = null;
             try {
                 url  = new URL(target);
                 urlConnection = (HttpsURLConnection) url.openConnection();
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                urlConnection.connect();
+                int status = urlConnection.getResponseCode();
+                InputStream in;
+                if(status >= 400)
+                    in = urlConnection.getErrorStream();
+                else
+                    in = urlConnection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(in);
                 int data = inputStreamReader.read();
                 while(data!=-1){
@@ -77,7 +80,20 @@ public class MainActivity extends AppCompatActivity {
         }
             protected void onPostExecute (String s){
                 super.onPostExecute(s);
+                String main = "";
+                String desc = "";
+                try {
+                    JSONArray jsonArray = new JSONObject(s).getJSONArray("weather");
+                    main = new JSONObject(jsonArray.get(0).toString()).getString("main");
+                    desc = new JSONObject(jsonArray.get(0).toString()).getString("description");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 Log.d("result", s);
+                Log.d("main", main);
+                Log.d("desc", desc);
+
+                textView2.setText(main + ", description: "+desc);
             }
         }
     }
