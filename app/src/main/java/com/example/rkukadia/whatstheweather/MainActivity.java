@@ -1,10 +1,12 @@
 package com.example.rkukadia.whatstheweather;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     public void getWeather(View view) {
             String city = String.valueOf(editText.getText());
             new DownloadTask().execute(city);
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(editText.getWindowToken(), 0);
     }
 
     public class DownloadTask extends AsyncTask<String, Void, String> {
